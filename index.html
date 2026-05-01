@@ -1922,102 +1922,109 @@
     return null;
   }
 
+
+  // Web-safe browser-frame mockup (added for Approved Asset Package)
+  function WebSafeMockup({ work }) {
+    const [c1, c2, c3, c4] = work.palette;
+    const palette = [c1, c2, c3, c4];
+    const elements = ART_BY_ID[work.id] || ART_BY_ID["comp-14"];
+    return (
+      <svg viewBox="0 0 400 280" preserveAspectRatio="xMidYMid slice" style={{ width: "100%", height: "100%" }}>
+        <defs><clipPath id="web-clip"><rect x="40" y="56" width="320" height="180"/></clipPath></defs>
+        <rect width="400" height="280" fill="#EFE9DC"/>
+        {/* Browser chrome */}
+        <rect x="40" y="30" width="320" height="220" fill="#fff" stroke={c1} strokeOpacity="0.2" strokeWidth="0.5"/>
+        <rect x="40" y="30" width="320" height="20" fill="#F4EFE6"/>
+        <circle cx="52" cy="40" r="3" fill="#cc4744"/>
+        <circle cx="62" cy="40" r="3" fill="#d8a93c"/>
+        <circle cx="72" cy="40" r="3" fill="#3D5240"/>
+        <rect x="90" y="34" width="220" height="12" rx="2" fill="#fff" stroke={c1} strokeOpacity="0.15" strokeWidth="0.4"/>
+        <text x="98" y="42" fill={c1} opacity="0.55" style={{ fontFamily: "JetBrains Mono", fontSize: "5px", letterSpacing: "0.1em" }}>vogue.com/pollock-edition</text>
+        {/* Hero artwork */}
+        <rect x="40" y="56" width="320" height="180" fill={c4}/>
+        <svg x="40" y="56" width="320" height="180" viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+          <g clipPath="url(#web-clip)">
+            <rect width="400" height="500" fill={c4}/>
+            <rect width="400" height="500" fill={c3} opacity="0.6"/>
+            {elements.map((el, i) => {
+              if (el.type === "path") return <path key={i} d={el.d} stroke={palette[el.c]} strokeWidth={el.w} fill="none" opacity={el.op} strokeLinecap="round"/>;
+              return <circle key={i} cx={el.cx} cy={el.cy} r={el.r} fill={palette[el.c]} opacity={el.op}/>;
+            })}
+          </g>
+        </svg>
+        <rect x="40" y="56" width="320" height="180" fill="black" opacity="0.15"/>
+        <text x="56" y="220" fill="#fff" style={{ fontFamily: "Fraunces", fontSize: "11px", fontStyle: "italic" }}>The Pollock Edition</text>
+        <text x="56" y="244" fill={c1} opacity="0.55" style={{ fontFamily: "JetBrains Mono", fontSize: "4.5px", letterSpacing: "0.2em", textTransform: "uppercase" }}>WEB-SAFE · 1920×1080 · sRGB · 72 DPI · &lt; 250KB</text>
+      </svg>
+    );
+  }
+
   function BuyerVaultScreen({ work, request, onRestart }) {
+    const [activeLicense, setActiveLicense] = useState("VC-0042");
+    const [selectedAsset, setSelectedAsset] = useState(null);
     const [units, setUnits] = useState(847);
     const [retailPrice, setRetailPrice] = useState(420);
-    const [activeFileFilter, setActiveFileFilter] = useState("All");
-    const [selectedAsset, setSelectedAsset] = useState(null);
+    const [usageReports, setUsageReports] = useState([
+      { id: 1, campaign: "Pollock Edition · Silk Scarf SS26", territory: "Worldwide",     status: "Live · in market",    due: "May 31, 2026", units: "847 units" },
+      { id: 2, campaign: "Vogue Editorial · May Cover",       territory: "Worldwide",     status: "Approved · published", due: "Jun 15, 2026", units: "1 placement" },
+      { id: 3, campaign: "Museum Retail · MoMA Q3",            territory: "North America", status: "Awaiting launch",     due: "—",            units: "Pending" },
+    ]);
 
-    const grossRetail = units * retailPrice;
-    const royaltyOwed = Math.round(grossRetail * 0.04);
-    const cogsPerUnit = 38;
-    const margin = Math.round(grossRetail - royaltyOwed - request.fee - units * cogsPerUnit);
-    const breakeven = Math.max(1, Math.ceil((request.fee) / Math.max(1, retailPrice - cogsPerUnit - retailPrice * 0.04)));
-
-    const projection = [
-      { m: "M1", v: 8 }, { m: "M2", v: 22 }, { m: "M3", v: 38 }, { m: "M4", v: 56 },
-      { m: "M5", v: 72 }, { m: "M6", v: 88 }, { m: "M7", v: 102 }, { m: "M8", v: 116 },
-      { m: "M9", v: 128 }, { m: "M10", v: 138 }, { m: "M11", v: 148 }, { m: "M12", v: 156 },
+    const buyerLicenses = [
+      { id: "VC-0042", w: work.title,           est: "Pollock Estate",      active: true,  status: "Active" },
+      { id: "VC-0038", w: "Mobile, 1962",       est: "Calder Estate",       active: false, status: "Active" },
+      { id: "VC-0029", w: "Untitled study, 1953", est: "Twombly Foundation", active: false, status: "Renewing" },
+      { id: "VC-0021", w: "Number 7",           est: "Rothko Foundation",   active: false, status: "Active" },
     ];
-    const projectedYearRevenue = 156 * 25 * retailPrice;
 
-    // EXPANDED — practical creative-industry applications with visual product mockups
-    const assetLibrary = [
-      // Product Mockups (visual)
-      { id: "scarf",     mockup: "scarf",     name: "Silk scarf · 90×90cm",            category: "Product Mockups", desc: "Hermès-style placement · 3 colorways", size: "PSD · 124 MB", ext: "PSD",
-        usage: "Approved silk scarf production-ready mockup with bleed and color separations. Used by manufacturer to begin sampling.",
-        next: "Send to mill · 6-week lead time" },
-      { id: "package",   mockup: "package",   name: "Retail packaging · gift box",     category: "Product Mockups", desc: "Co-branded · debossed lid", size: "AI · 18 MB", ext: "AI",
-        usage: "Final retail packaging artwork for the limited capsule, including co-branding zone, debossed Vogue × Pollock mark, and FSC-certified spec.",
-        next: "Approve dieline · send to print vendor" },
-      { id: "tote",      mockup: "tote",      name: "Museum retail tote",              category: "Product Mockups", desc: "Cotton canvas · screen-print", size: "AI · 8 MB", ext: "AI",
-        usage: "Co-licensed museum retail tote. Designed for sale in MoMA, Tate, and Vogue Collections retail. Single-color screen-print spec included.",
-        next: "Open at MoMA Design Store · Q3 2026" },
-      { id: "poster",    mockup: "poster",    name: "Editorial / gallery print",       category: "Product Mockups", desc: "Gallery-quality lithograph", size: "TIFF · 184 MB", ext: "TIFF",
-        usage: "Production-grade 16-bit lithographic print, edition of 250. Comes with COA and embedded license ID watermark.",
-        next: "Issue COAs · MoMA gift shop pre-order" },
-
-      // Marketing & Campaign assets
-      { id: "billboard", mockup: "billboard", name: "OOH billboard · Fifth Ave",       category: "Marketing & Campaign", desc: "48-sheet · approved scope", size: "PDF · 64 MB", ext: "PDF",
-        usage: "Out-of-home approved spec for billboard rollout in NYC, London, Tokyo. Includes approved crops, copy lockups, and clear-zone diagrams.",
-        next: "Book OOH placement · launch May 12" },
-      { id: "social",    mockup: "social",    name: "Instagram + TikTok kit",          category: "Marketing & Campaign", desc: "12 placements · 9 ratios", size: "ZIP · 92 MB", ext: "ZIP",
-        usage: "Pre-approved social campaign assets across feed, story, reel, TikTok, and Pinterest formats. Each asset is watermarked with the license ID.",
-        next: "Push to Vogue social calendar · May 6" },
-      { id: "phone",     mockup: "phone",     name: "Mobile launch creative",          category: "Marketing & Campaign", desc: "App + paid acquisition", size: "Figma · 24 MB", ext: "FIG",
-        usage: "Mobile-optimized landing creative for paid acquisition. Includes 4 hero variants, A/B test plan, and attribution tagging.",
-        next: "Connect to Meta Ads Manager" },
-      { id: "ar",        mockup: "ar",        name: "AR wall preview",                 category: "Marketing & Campaign", desc: "Try-it-on-your-wall · WebAR", size: "GLB · 38 MB", ext: "GLB",
-        usage: "Web-based AR experience letting buyers preview the print in their own space before purchase. Hosted on the buyer subdomain.",
-        next: "Embed on shop.voguecollections.com" },
-
-      // Production files — now with visual file previews
-      { id: "tiff",      mockup: "tiff",     name: "Master TIFF (16-bit)",            category: "Production Files", desc: "Production-grade · color-managed", size: "184 MB", ext: "TIFF",
-        usage: "Native 16-bit master file used as the source of truth for every other production asset. Color-profiled to ICC.",
-        next: "Reference file · do not share externally" },
-      { id: "vector",    mockup: "vector",   name: "Vector outlines",                  category: "Production Files", desc: "Scalable · multi-color separation", size: "6 MB", ext: "SVG",
-        usage: "Scalable outline layer for embroidery, engraving, packaging dieline, and signage at any scale.",
-        next: "Send to embroidery vendor for sample" },
-      { id: "icc",       mockup: "icc",      name: "Color profiles · Pantone",         category: "Production Files", desc: "ICC + spot-color spec", size: "1 MB", ext: "ICC",
-        usage: "Matched ICC profile + Pantone TPX/TPG references to reduce production color drift across regions.",
-        next: "Distribute to all print vendors" },
-
-      // Brand & Legal — now with visual document previews
-      { id: "brand",     mockup: "brand",    name: "Co-branding kit",                  category: "Brand & Legal", desc: "Vogue × Pollock lockup rules", size: "12 MB", ext: "PDF",
-        usage: "Approved color, typography, lockup spacing, and co-branding rules for the licensed collaboration. Exact lockups required for OOH and packaging.",
-        next: "Share with comms + retail teams" },
-      { id: "license",   mockup: "license",  name: "Counter-signed license",           category: "Brand & Legal", desc: "Full PDF + on-chain proof", size: "2 MB", ext: "PDF",
-        usage: "The signed license contract with territory, duration, product category, royalty schedule, and usage restrictions. On-chain hash co-located.",
-        next: "Forward to legal + finance" },
-      { id: "cert",      mockup: "cert",     name: "On-chain certificate",             category: "Brand & Legal", desc: "Hash + verification URL", size: "—", ext: "URL",
-        usage: "Public verification page for the license certificate. Anyone can verify authenticity by hash; no login required.",
-        next: "Add link to product hangtag" },
-      { id: "nfc",       mockup: "nfc",      name: "NFC hangtag spec",                 category: "Brand & Legal", desc: "Per-unit verification chip", size: "Spec · 1 MB", ext: "PDF",
-        usage: "NFC chip spec for each scarf hangtag — buyer taps phone to verify their unit's authenticity against the on-chain certificate.",
-        next: "Order chips · 3,000 units" },
+    // Rights Matrix
+    const rightsMatrix = [
+      { use: "Editorial campaign",   status: "allowed",    note: "All territories · full license duration" },
+      { use: "Product packaging",    status: "allowed",    note: "Luxury accessories category · co-branded only" },
+      { use: "Apparel",              status: "restricted", note: "EU excluded — reserved by LVMH (2025–2027)" },
+      { use: "AI / ML training",     status: "prohibited", note: "Not included · estate has reserved AI rights" },
+      { use: "Sublicensing",         status: "prohibited", note: "Direct license only · no third-party transfer" },
+      { use: "Post-expiration use",  status: "prohibited", note: "All assets must be retired by Apr 29, 2027" },
     ];
-    const categories = ["All", "Product Mockups", "Marketing & Campaign", "Production Files", "Brand & Legal"];
-    const visibleAssets = assetLibrary.filter((f) => activeFileFilter === "All" || f.category === activeFileFilter);
+
+    // Compliance Alerts
+    const complianceAlerts = [
+      { level: "high",   icon: "lock", title: "AI training rights NOT approved",        body: "License outputs cannot be used to train, fine-tune, or evaluate ML models. Estate reserves AI rights." },
+      { level: "medium", icon: "warn", title: "EU apparel category is restricted",      body: "Existing LVMH apparel capsule (2025–2027) blocks this product category in EU. Other regions unaffected." },
+      { level: "low",    icon: "clock", title: "License expires in 358 days",            body: "Auto-renewal available 60 days before expiry · same fee · Estate has pre-approved renewal." },
+      { level: "low",    icon: "bell", title: "Q1 royalty report due in 30 days",       body: "Submit before May 31, 2026 to avoid late filing fee. Auto-import from Shopify available." },
+    ];
+
+    // Approved Asset Package — 6 cards as specified
+    const assetPackage = [
+      { id: "tiff",    mockup: "tiff",    name: "High-resolution artwork file",  desc: "Master TIFF · 16-bit · 600 DPI · ICC profiled", size: "184 MB · TIFF",
+        usage: "Production-grade master file for high-end print: scarf, packaging, gallery prints, museum retail. Watermarked with license ID." },
+      { id: "web",     mockup: "web",     name: "Web-safe image",                 desc: "1920×1080 · sRGB · 72 DPI · &lt;250KB",         size: "238 KB · JPG/WEBP",
+        usage: "Optimized for online retail, editorial articles, social campaigns. Maintains color fidelity at small file sizes." },
+      { id: "social",  mockup: "social",  name: "Approved campaign crop",         desc: "9 social ratios · pre-approved by Estate",     size: "92 MB · ZIP",
+        usage: "Pre-cropped versions for Instagram, TikTok, Pinterest, OOH placements. Each crop is signed off — no need for re-approval." },
+      { id: "scarf",   mockup: "scarf",   name: "Product mockup",                 desc: "Silk scarf placement · 3 colorways · with bleed", size: "124 MB · PSD",
+        usage: "Production-ready mockup for the silk scarf SKU including bleed marks and color separations. Send directly to mill." },
+      { id: "brand",   mockup: "brand",   name: "Attribution guide",              desc: "Required credit lines · co-brand lockups",      size: "12 MB · PDF",
+        usage: 'Required attribution: "© The Pollock Estate. Licensed by ArtChain. Used under VC-0042." Mandatory placement rules included.' },
+      { id: "license", mockup: "license", name: "License summary PDF",            desc: "Plain-language overview of the license terms", size: "2 MB · PDF",
+        usage: "Two-page summary of rights, restrictions, royalty obligations, and key dates. Counter-signed by 3 trustees and ArtChain." },
+    ];
 
     return (
       <section className="max-w-[1400px] mx-auto px-8 pt-12 pb-24">
-        <PortalHeader portal="My Collection · Buyer Account" who="Vogue Collections · 4 active licenses" />
+        <PortalHeader portal="License Vault · Buyer Account" who="Vogue Collections · 4 active licenses" />
 
-        {/* Mini-tabs: switch between licenses in the buyer's collection */}
+        {/* License switcher tabs */}
         <div className="mt-6 flex items-center gap-2 flex-wrap anim-fade">
           <span className="text-[10px] ff-mono tracking-[0.2em] uppercase muted mr-2">My licenses</span>
-          {[
-            { id: "VC-0042", w: work.title, est: "Pollock Estate", active: true },
-            { id: "VC-0038", w: "Mobile, 1962", est: "Calder Estate", active: false },
-            { id: "VC-0029", w: "Untitled study, 1953", est: "Twombly Foundation", active: false },
-            { id: "VC-0021", w: "Number 7", est: "Rothko Foundation", active: false },
-          ].map(lic => (
-            <button key={lic.id}
-              className={"px-3 py-1.5 border text-[10px] ff-mono tracking-[0.16em] uppercase flex items-center gap-2 " +
-                (lic.active ? "ink-bg text-white hairline-strong" : "paper hairline hover:border-[#161616]/45")}>
-              <span className="w-1 h-1 rounded-full" style={{ background: lic.active ? "#fff" : "#3D5240", opacity: lic.active ? 1 : 0.7 }} />
+          {buyerLicenses.map(lic => (
+            <button key={lic.id} onClick={() => setActiveLicense(lic.id)}
+              className={"px-3 py-1.5 border text-[10px] ff-mono tracking-[0.16em] uppercase flex items-center gap-2 transition " +
+                (lic.id === activeLicense ? "ink-bg text-white hairline-strong" : "paper hairline hover:border-[#161616]/45")}>
+              <span className="w-1 h-1 rounded-full" style={{ background: lic.id === activeLicense ? "#fff" : "#3D5240", opacity: lic.id === activeLicense ? 1 : 0.7 }} />
               <span>{lic.id}</span>
-              <span className={lic.active ? "opacity-70" : "muted"}>·</span>
+              <span className={lic.id === activeLicense ? "opacity-70" : "muted"}>·</span>
               <span className="normal-case ff-display">{lic.w}</span>
             </button>
           ))}
@@ -2026,74 +2033,207 @@
           </button>
         </div>
 
-        <div className="mt-8 anim-fadeup">
+        {/* Header */}
+        <div className="mt-10 anim-fadeup">
           <div className="flex items-center gap-3 mb-3">
             <span className="w-1.5 h-1.5 rounded-full pulse-dot leaf-bg" />
-            <span className="text-[11px] ff-mono tracking-[0.2em] uppercase leaf">License #VC-0042 · live · 11 mo, 28 days remaining</span>
+            <span className="text-[11px] ff-mono tracking-[0.2em] uppercase leaf">License #VC-0042 · live · 358 days remaining</span>
           </div>
           <h2 className="ff-display text-[52px] leading-[1] max-w-[20ch]">
-            Your collection is live.<br />
-            <span className="italic ox">Now make money with it.</span>
+            License Vault.<br />
+            <span className="italic ox">Everything you need to use, prove, and manage this license.</span>
           </h2>
-          <p className="muted text-[15px] mt-3 max-w-[58ch]">
-            Production-ready mockups, campaign artwork, sell-through tracking, royalty automation, and bundle intelligence — everything Vogue's product team needs to move from contract to shelf.
+          <p className="muted text-[15px] mt-3 max-w-[64ch]">
+            A licensed work — not owned. Approved use only. This vault holds your rights, restrictions, certificate of authenticity, approved assets, and royalty obligations.
           </p>
         </div>
 
+        {/* === 1. STATUS ROW === */}
         <div className="mt-10 grid grid-cols-1 md:grid-cols-4 gap-px ink-bg border hairline-strong anim-fadeup" style={{ animationDelay: "0.1s" }}>
-          <KPI icon={<Globe size={14} />}      label="Territory active"    value={request.territory}                  delta="2 markets prepping" />
-          <KPI icon={<Clock size={14} />}      label="Time remaining"      value="358 days"                           delta="auto-renew option" />
-          <KPI icon={<Wallet size={14} />}     label="Royalty owed YTD"    value={"$" + royaltyOwed.toLocaleString()} delta="next due May 31" />
-          <KPI icon={<TrendingUp size={14} />} label="Projected yr. value" value={"$" + (projectedYearRevenue/1000000).toFixed(2) + "M"} delta="56% gross margin" highlight />
+          <KPI icon={<FileCheck size={14} />}  label="Active license"        value="VC-0042"        delta="Pollock × Vogue · 12 mo" />
+          <KPI icon={<ShieldCheck size={14} />} label="Certificate issued"    value="Apr 29, 2026"   delta="14:32:08 UTC · on-chain" />
+          <KPI icon={<Clock size={14} />}      label="Days remaining"        value="358"            delta="Auto-renew option · 60d notice" />
+          <KPI icon={<Calendar size={14} />}    label="Next royalty report"   value="May 31, 2026"   delta="30 days · auto-import ready" highlight />
         </div>
 
-        {/* === ASSET LIBRARY — expanded with visual product mockups === */}
-        <div className="mt-12 anim-fadeup" style={{ animationDelay: "0.15s" }}>
-          <div className="flex items-end justify-between mb-5 flex-wrap gap-4">
-            <div>
-              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">01 — Asset library</div>
-              <h3 className="ff-display text-[28px] mt-1">From license to launch · {assetLibrary.length} ready-to-use assets</h3>
-              <p className="muted text-[13px] mt-2 max-w-[64ch]">Production-ready mockups, signed-off campaign creative, and brand-safe files. Every asset is watermarked with your license ID and access is logged on-chain.</p>
+        {/* === 2. LICENSE PASSPORT + 5. CERTIFICATE & PROOF === */}
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6 anim-fadeup" style={{ animationDelay: "0.15s" }}>
+          {/* LICENSE PASSPORT */}
+          <div className="lg:col-span-7 ink-bg text-white p-7 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[180px] h-[180px] opacity-15 pointer-events-none">
+              <ArtworkImage work={work} hideCatalog={true} className="w-full h-full" />
             </div>
-            <button className="border hairline-strong px-5 py-2.5 text-[11px] ff-mono tracking-[0.2em] uppercase flex items-center gap-2 hover:ink-bg hover:text-white">
-              <Download size={12} /> Download all (612 MB)
-            </button>
+            <div className="text-[10px] ff-mono tracking-[0.2em] uppercase opacity-60">License Passport</div>
+            <div className="ff-display text-[26px] mt-1.5 italic leading-tight">{work.title}</div>
+            <div className="text-[11px] ff-mono tracking-widest uppercase opacity-60 mt-1">{work.year} · {work.medium}</div>
+
+            <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 relative">
+              <PassportField label="Estate"           value="The Pollock Estate" />
+              <PassportField label="Buyer"            value="Vogue Collections" />
+              <PassportField label="License ID"       value="VC-0042" mono />
+              <PassportField label="Status"           value={<span className="leaf flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full leaf-bg pulse-dot" />Active · live</span>} />
+              <PassportField label="Use case"         value={request.useCase} span={2} />
+              <PassportField label="Territory"        value={request.territory} />
+              <PassportField label="Duration"         value={request.duration + " · expires Apr 29, 2027"} />
+              <PassportField label="Product category" value={request.productType} />
+              <PassportField label="AI rights"        value={<span className="ox">Reserved by Estate · not granted</span>} />
+              <PassportField label="Total fee"        value={"$" + request.fee.toLocaleString() + " · paid in full"} span={2} />
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-white/15 flex items-center justify-between text-[10px] ff-mono tracking-widest uppercase opacity-60">
+              <span>This is a license, not ownership of the artwork or copyright</span>
+              <span>v4.2 · ALC schema</span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 mb-5">
-            {categories.map((category) => {
-              const count = category === "All" ? assetLibrary.length : assetLibrary.filter(a => a.category === category).length;
-              return (
-                <button key={category} onClick={() => setActiveFileFilter(category)}
-                  className={"px-3 py-1.5 text-[10px] ff-mono tracking-[0.16em] uppercase border transition flex items-center gap-2 " + (activeFileFilter === category ? "ink-bg text-white border-[#161616]" : "paper border hairline hover:border-[#161616]/45")}>
-                  {category}
-                  <span className={"text-[9px] " + (activeFileFilter === category ? "opacity-60" : "muted")}>{count}</span>
+          {/* CERTIFICATE & PROOF */}
+          <div className="lg:col-span-5 paper border hairline-strong p-7">
+            <div className="flex items-center gap-2 text-[10px] ff-mono tracking-[0.2em] uppercase muted">
+              <ShieldCheck size={11} className="ox" /> Certificate &amp; Proof
+            </div>
+            <div className="ff-display text-[20px] mt-2 leading-tight">Verifiable authenticity</div>
+
+            <div className="mt-5 space-y-3.5">
+              <div>
+                <div className="text-[9px] ff-mono tracking-widest uppercase muted">Certificate ID</div>
+                <div className="ff-mono text-[12px] mt-0.5 break-all">AC-2026-04-29-PE0149-VC0042</div>
+              </div>
+              <div>
+                <div className="text-[9px] ff-mono tracking-widest uppercase muted">On-chain hash</div>
+                <div className="ff-mono text-[10px] mt-0.5 break-all leaf">0x7c3f9a2b1e4d8c6f5a09b7e3d2c1f8a4b6d9e0c2f1a3b5d7e8f9c0a1b2d3e4f5</div>
+              </div>
+              <div>
+                <div className="text-[9px] ff-mono tracking-widest uppercase muted">Timestamp</div>
+                <div className="ff-mono text-[12px] mt-0.5">Apr 29, 2026 · 14:32:08 UTC · Block 8,294,118</div>
+              </div>
+              <div>
+                <div className="text-[9px] ff-mono tracking-widest uppercase muted mb-1.5">Trustee approvals · 3 of 3</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {TRUSTEES.map(t => (
+                    <span key={t.name} className="flex items-center gap-1.5 paper border hairline px-2 py-1">
+                      <span className="w-5 h-5 ink-bg text-white flex items-center justify-center text-[8px] ff-mono">{t.initials}</span>
+                      <span className="text-[10px]">{t.name.replace(/\..*?\s/, "")}</span>
+                      <Check size={10} className="leaf" strokeWidth={3} />
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-5 border-t hairline space-y-2">
+              <button className="w-full ink-bg text-white py-2.5 text-[10px] ff-mono tracking-[0.2em] uppercase flex items-center justify-center gap-2">
+                <Download size={12}/> Download Certificate
+              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button className="border hairline-strong py-2.5 text-[10px] ff-mono tracking-[0.2em] uppercase flex items-center justify-center gap-2 hover:ink-bg hover:text-white transition">
+                  <Hash size={11}/> Copy verify link
                 </button>
+                <button className="border hairline-strong py-2.5 text-[10px] ff-mono tracking-[0.2em] uppercase flex items-center justify-center gap-2 hover:ink-bg hover:text-white transition">
+                  <Activity size={11}/> Audit trail
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* === 4. RIGHTS MATRIX === */}
+        <div className="mt-12 anim-fadeup" style={{ animationDelay: "0.2s" }}>
+          <div className="flex items-end justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">Rights Matrix</div>
+              <h3 className="ff-display text-[26px] mt-1">What you can &amp; cannot do</h3>
+              <p className="muted text-[12px] mt-1">Read this carefully — exceeding scope voids the license and triggers Estate audit.</p>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] ff-mono tracking-widest uppercase">
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 leaf-bg rounded-sm" /> Allowed · 2</span>
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm" style={{ background: "#8C6A1F" }} /> Restricted · 1</span>
+              <span className="flex items-center gap-1.5"><span className="w-2 h-2 ox-bg rounded-sm" /> Prohibited · 3</span>
+            </div>
+          </div>
+          <div className="border hairline divide-y hairline">
+            <div className="grid grid-cols-12 gap-4 p-3 paper text-[10px] ff-mono tracking-widest uppercase muted">
+              <div className="col-span-4">Use case</div>
+              <div className="col-span-2">Status</div>
+              <div className="col-span-6">Notes &amp; conditions</div>
+            </div>
+            {rightsMatrix.map((r, i) => {
+              const cfg = r.status === "allowed" ? { color: "#3D5240", bg: "leaf-bg", label: "Allowed",    icon: <Check size={12} strokeWidth={3} /> }
+                       : r.status === "restricted" ? { color: "#8C6A1F", bg: "",       label: "Restricted", icon: <AlertCircle size={12} /> }
+                       :                             { color: "#6B1F1F", bg: "ox-bg",  label: "Prohibited", icon: <X size={12} strokeWidth={3} /> };
+              return (
+                <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center text-[13px]">
+                  <div className="col-span-4 ff-display text-[16px]">{r.use}</div>
+                  <div className="col-span-2">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-1 text-[9px] ff-mono tracking-widest uppercase text-white"
+                          style={{ background: cfg.color }}>
+                      {cfg.icon}
+                      {cfg.label}
+                    </span>
+                  </div>
+                  <div className="col-span-6 muted text-[12px]">{r.note}</div>
+                </div>
               );
             })}
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {visibleAssets.map((f) => (
-              <button key={f.id} onClick={() => setSelectedAsset(f)} className="paper border hairline group hover:border-[#161616]/50 transition cursor-pointer text-left overflow-hidden flex flex-col">
-                <div className="aspect-[5/4] border-b hairline relative overflow-hidden">
-                  {f.mockup ? (
-                    <ProductMockup work={work} type={f.mockup} />
-                  ) : (
-                    <div className="absolute inset-0 cream-2 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="ff-mono text-[28px] font-medium opacity-60">.{f.ext}</div>
-                        <div className="ff-mono text-[8px] tracking-widest uppercase muted mt-1">{f.size}</div>
-                      </div>
+        {/* === 8. COMPLIANCE ALERTS === */}
+        <div className="mt-12 anim-fadeup" style={{ animationDelay: "0.25s" }}>
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">Compliance Alerts</div>
+              <h3 className="ff-display text-[26px] mt-1">Stay inside the lines</h3>
+            </div>
+            <div className="text-[10px] ff-mono tracking-widest uppercase muted">4 active · 0 violations</div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {complianceAlerts.map((a, i) => {
+              const cfg = a.level === "high"   ? { color: "#6B1F1F", label: "Restriction",  icon: <Lock size={14} /> }
+                       :  a.level === "medium" ? { color: "#8C6A1F", label: "Notice",       icon: <AlertCircle size={14} /> }
+                       :                         { color: "#3D5240", label: "Reminder",     icon: <Clock size={14} /> };
+              return (
+                <div key={i} className="paper border hairline p-4 flex items-start gap-3" style={{ borderLeft: "3px solid " + cfg.color }}>
+                  <div className="flex-shrink-0 mt-0.5" style={{ color: cfg.color }}>{cfg.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] ff-mono tracking-widest uppercase" style={{ color: cfg.color }}>{cfg.label}</span>
                     </div>
+                    <div className="ff-display text-[15px] leading-tight">{a.title}</div>
+                    <p className="text-[12px] muted mt-1.5 leading-snug">{a.body}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* === 6. APPROVED ASSET PACKAGE === */}
+        <div className="mt-12 anim-fadeup" style={{ animationDelay: "0.3s" }}>
+          <div className="flex items-end justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">Approved Asset Package</div>
+              <h3 className="ff-display text-[26px] mt-1">Files you may use under this license</h3>
+              <p className="muted text-[12px] mt-1">All files are watermarked with VC-0042. Each download is logged on-chain.</p>
+            </div>
+            <button className="border hairline-strong px-4 py-2 text-[10px] ff-mono tracking-[0.2em] uppercase flex items-center gap-2 hover:ink-bg hover:text-white transition">
+              <Download size={12} /> Download package (612 MB)
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {assetPackage.map((f) => (
+              <button key={f.id} onClick={() => setSelectedAsset(f)}
+                      className="paper border hairline group hover:border-[#161616]/50 transition cursor-pointer text-left overflow-hidden flex flex-col">
+                <div className="aspect-[16/10] border-b hairline relative overflow-hidden">
+                  {f.mockup === "web" ? (
+                    <WebSafeMockup work={work} />
+                  ) : (
+                    <ProductMockup work={work} type={f.mockup} />
                   )}
-                  <div className="absolute top-2 left-2 paper px-1.5 py-0.5 ff-mono text-[8px] tracking-widest uppercase">{f.ext}</div>
                   <div className="absolute top-2 right-2 ink-bg text-white px-1.5 py-0.5 ff-mono text-[8px] tracking-widest uppercase opacity-0 group-hover:opacity-100 transition">Preview</div>
                 </div>
                 <div className="p-4 flex flex-col flex-1">
-                  <div className="ff-display text-[15px] leading-tight">{f.name}</div>
-                  <div className="text-[11px] muted mt-1 leading-snug">{f.desc}</div>
-                  <div className="text-[9px] ff-mono uppercase tracking-widest mt-3 ox">{f.category}</div>
+                  <div className="ff-display text-[16px] leading-tight">{f.name}</div>
+                  <div className="text-[11px] muted mt-1 leading-snug" dangerouslySetInnerHTML={{ __html: f.desc }} />
                   <div className="mt-3 pt-3 border-t hairline flex items-center justify-between text-[10px] ff-mono tracking-wider uppercase mt-auto">
                     <span className="muted">{f.size}</span>
                     <span className="ink flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
@@ -2104,7 +2244,6 @@
               </button>
             ))}
           </div>
-          <div className="mt-4 text-[10px] ff-mono tracking-[0.14em] uppercase muted">Demo preview only · Access controlled by license ID · Every download logged on-chain</div>
         </div>
 
         {/* Asset preview modal */}
@@ -2112,152 +2251,177 @@
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6" onClick={() => setSelectedAsset(null)}>
             <div className="paper border hairline-strong w-full max-w-[860px] max-h-[90vh] overflow-y-auto p-6 md:p-8 relative" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setSelectedAsset(null)} className="absolute right-4 top-4 border hairline p-1.5 hover:ink-bg hover:text-white transition"><X size={14} /></button>
-              <div className="text-[10px] ff-mono tracking-[0.2em] uppercase muted">{selectedAsset.category} · DEMO PREVIEW</div>
+              <div className="text-[10px] ff-mono tracking-[0.2em] uppercase muted">Approved Asset Package · DEMO PREVIEW</div>
               <h4 className="ff-display text-[32px] leading-[1.05] mt-2">{selectedAsset.name}</h4>
-              <p className="text-[14px] muted mt-2 max-w-[60ch]">{selectedAsset.desc}</p>
-
-              {selectedAsset.mockup && (
-                <div className="mt-5 border hairline aspect-[16/9] overflow-hidden">
-                  <ProductMockup work={work} type={selectedAsset.mockup} />
-                </div>
-              )}
-              {!selectedAsset.mockup && (
-                <div className="mt-5 border hairline aspect-[16/9] cream-2 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="ff-mono text-[64px] font-medium opacity-50">.{selectedAsset.ext}</div>
-                    <div className="ff-mono text-[10px] tracking-widest uppercase muted mt-2">{selectedAsset.size}</div>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 text-[11px]">
-                <div><div className="ff-mono uppercase muted text-[9px]">Category</div><div className="mt-0.5">{selectedAsset.category}</div></div>
-                <div><div className="ff-mono uppercase muted text-[9px]">Format</div><div className="mt-0.5">{selectedAsset.ext}</div></div>
-                <div><div className="ff-mono uppercase muted text-[9px]">File size</div><div className="mt-0.5">{selectedAsset.size}</div></div>
-                <div><div className="ff-mono uppercase muted text-[9px]">Status</div><div className="mt-0.5 leaf">Logged on-chain</div></div>
+              <p className="text-[14px] muted mt-2 max-w-[60ch]" dangerouslySetInnerHTML={{ __html: selectedAsset.desc }} />
+              <div className="mt-5 border hairline aspect-[16/9] overflow-hidden">
+                {selectedAsset.mockup === "web" ? <WebSafeMockup work={work} /> : <ProductMockup work={work} type={selectedAsset.mockup} />}
               </div>
-
               <div className="mt-5 border-t hairline pt-4">
-                <div className="text-[10px] ff-mono tracking-widest uppercase muted">Usage</div>
+                <div className="text-[10px] ff-mono tracking-widest uppercase muted">Approved usage</div>
                 <p className="mt-1.5 text-[13px]">{selectedAsset.usage}</p>
               </div>
-              <div className="mt-4 paper border hairline-strong p-3 flex items-center gap-3">
-                <ArrowRight size={14} className="ox flex-shrink-0" />
-                <div>
-                  <div className="text-[10px] ff-mono tracking-widest uppercase muted">Suggested next step</div>
-                  <div className="text-[13px] mt-0.5">{selectedAsset.next}</div>
-                </div>
+              <div className="mt-3 paper border hairline-strong p-3 flex items-start gap-2.5">
+                <ShieldCheck size={14} className="ox flex-shrink-0 mt-0.5" />
+                <div className="text-[11px] muted">Use of this asset is bound by license VC-0042. Outputs created under this license remain your work but the underlying artwork remains the property of The Pollock Estate.</div>
               </div>
-
-              <div className="mt-6 flex flex-wrap gap-2">
-                <button className="ink-bg text-white px-4 py-2 text-[10px] ff-mono tracking-[0.16em] uppercase flex items-center gap-2"><Download size={12} /> Download (logged)</button>
-                <button className="border hairline-strong px-4 py-2 text-[10px] ff-mono tracking-[0.16em] uppercase">Share with vendor</button>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <button className="ink-bg text-white px-4 py-2 text-[10px] ff-mono tracking-[0.16em] uppercase flex items-center gap-2"><Download size={12}/> Download (logged)</button>
                 <button onClick={() => setSelectedAsset(null)} className="border hairline px-4 py-2 text-[10px] ff-mono tracking-[0.16em] uppercase">Close</button>
               </div>
             </div>
           </div>
         )}
 
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-px ink-bg border hairline-strong anim-fadeup" style={{ animationDelay: "0.2s" }}>
-          <div className="lg:col-span-5 cream p-6">
-            <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">02 — Sales reporting</div>
-            <h3 className="ff-display text-[22px] mt-1 mb-4">Royalty obligation · live</h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-[10px] ff-mono tracking-widest uppercase muted">Units sold this period</label>
-                <div className="flex items-center gap-3 mt-1.5">
-                  <input type="number" value={units} onChange={e => setUnits(parseInt(e.target.value || "0"))}
-                    className="flex-1 bg-transparent border-b hairline pb-1 outline-none ff-display text-[28px] leading-none" />
-                  <span className="text-[10px] ff-mono tracking-widest uppercase muted">units</span>
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] ff-mono tracking-widest uppercase muted">Retail price per unit</label>
-                <div className="flex items-center gap-3 mt-1.5">
-                  <span className="ff-display text-[28px] leading-none">$</span>
-                  <input type="number" value={retailPrice} onChange={e => setRetailPrice(parseInt(e.target.value || "0"))}
-                    className="flex-1 bg-transparent border-b hairline pb-1 outline-none ff-display text-[28px] leading-none" />
-                </div>
-              </div>
+        {/* === 7. USAGE & ROYALTY TRACKER === */}
+        <div className="mt-12 anim-fadeup" style={{ animationDelay: "0.35s" }}>
+          <div className="flex items-end justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">Usage &amp; Royalty Tracker</div>
+              <h3 className="ff-display text-[26px] mt-1">Where this license is being used</h3>
+              <p className="muted text-[12px] mt-1">Every campaign or product run must be reported. Royalties auto-calculate from reported sell-through.</p>
             </div>
-
-            <div className="mt-6 paper border hairline p-4 space-y-2 text-[13px]">
-              <div className="flex justify-between">
-                <span className="muted">Gross retail value</span>
-                <span className="ff-mono">${grossRetail.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="muted">Royalty owed (4%)</span>
-                <span className="ff-mono ox">${royaltyOwed.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between border-t hairline pt-2">
-                <span className="muted">Net to Vogue</span>
-                <span className="ff-mono ff-display text-[16px]">${margin.toLocaleString()}</span>
-              </div>
-            </div>
-
-            <button className="mt-4 w-full ink-bg text-white py-3 flex items-center justify-center gap-2">
-              <Plus size={13} />
-              <span className="text-[11px] ff-mono tracking-[0.2em] uppercase">Submit sales report · auto-pay royalty</span>
+            <button className="ox-bg text-white px-4 py-2.5 text-[11px] ff-mono tracking-[0.2em] uppercase flex items-center gap-2">
+              <Plus size={12} /> Add usage report
             </button>
-
-            <div className="mt-5 pt-4 border-t hairline">
-              <div className="text-[10px] ff-mono tracking-widest uppercase muted mb-2">Recent reports</div>
-              <div className="space-y-1.5 text-[11px] ff-mono">
-                {[
-                  ["Mar 2026", "1,420 units", "$2,386"],
-                  ["Feb 2026", "892 units",   "$1,498"],
-                  ["Jan 2026", "564 units",   "$948"],
-                ].map((r, i) => (
-                  <div key={i} className="grid grid-cols-3 gap-2">
-                    <span className="muted tracking-wider uppercase">{r[0]}</span>
-                    <span>{r[1]}</span>
-                    <span className="text-right">{r[2]} paid</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
-
-          <div className="lg:col-span-7 cream p-6">
-            <div className="flex items-end justify-between mb-2">
-              <div>
-                <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">03 — Revenue projection</div>
-                <h3 className="ff-display text-[22px] mt-1">Sell-through forecast · 12 mo</h3>
-              </div>
-              <div className="text-right">
-                <div className="ff-display text-[32px] leading-none">${(projectedYearRevenue / 1000000).toFixed(2)}M</div>
-                <div className="text-[10px] ff-mono tracking-widest uppercase muted mt-1">Projected gross retail</div>
-              </div>
+          <div className="border hairline divide-y hairline">
+            <div className="grid grid-cols-12 gap-4 p-3 paper text-[10px] ff-mono tracking-widest uppercase muted">
+              <div className="col-span-4">Campaign</div>
+              <div className="col-span-2">Territory</div>
+              <div className="col-span-2">Volume</div>
+              <div className="col-span-2">Status</div>
+              <div className="col-span-2 text-right">Report due</div>
             </div>
-            <p className="text-[12px] muted mb-4">Modelled from comparable Hermès × Calder (2024) and LVMH × Pollock (2025) capsule data.</p>
-            <AreaChart data={projection} accent="#3D5240" height={140} showLabels />
-
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              <div className="paper border hairline p-3">
-                <div className="text-[9px] ff-mono tracking-widest uppercase muted">Break-even</div>
-                <div className="ff-display text-[20px] mt-1">{breakeven} units</div>
-                <div className="text-[10px] ff-mono tracking-wider uppercase muted mt-0.5">≈ M2</div>
-              </div>
-              <div className="paper border hairline p-3">
-                <div className="text-[9px] ff-mono tracking-widest uppercase muted">Total royalty owed</div>
-                <div className="ff-display text-[20px] mt-1">${(projectedYearRevenue * 0.04 / 1000).toFixed(0)}K</div>
-                <div className="text-[10px] ff-mono tracking-wider uppercase muted mt-0.5">across 12 months</div>
-              </div>
-              <div className="paper border hairline p-3">
-                <div className="text-[9px] ff-mono tracking-widest uppercase muted">Projected net margin</div>
-                <div className="ff-display text-[20px] mt-1">56%</div>
-                <div className="text-[10px] ff-mono tracking-wider uppercase muted mt-0.5">after royalty + COGS</div>
-              </div>
-            </div>
+            {usageReports.map(r => {
+              const isLive   = r.status.startsWith("Live");
+              const isApprov = r.status.startsWith("Approved");
+              return (
+                <div key={r.id} className="grid grid-cols-12 gap-4 p-4 items-center text-[13px]">
+                  <div className="col-span-4">
+                    <div className="ff-display text-[15px] leading-tight">{r.campaign}</div>
+                    <div className="text-[10px] ff-mono tracking-wider uppercase muted mt-0.5">VC-0042 · approved</div>
+                  </div>
+                  <div className="col-span-2 text-[12px] muted">{r.territory}</div>
+                  <div className="col-span-2 ff-mono text-[11px]">{r.units}</div>
+                  <div className="col-span-2">
+                    <span className={"inline-flex items-center gap-1.5 px-2 py-1 text-[9px] ff-mono tracking-widest uppercase " +
+                        (isLive ? "leaf-bg text-white" : isApprov ? "ink-bg text-white" : "border hairline muted")}>
+                      <span className={"w-1 h-1 rounded-full " + (isLive ? "pulse-dot" : "")} style={{ background: "currentColor" }} />
+                      {r.status}
+                    </span>
+                  </div>
+                  <div className="col-span-2 text-right ff-mono text-[11px] tracking-wider uppercase">
+                    {r.due === "—" ? <span className="muted">{r.due}</span> : r.due}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="mt-12 anim-fadeup" style={{ animationDelay: "0.25s" }}>
-          <div className="flex items-end justify-between mb-5">
+        {/* === 10. SALES & ROYALTY CALCULATOR · live === */}
+        {(() => {
+          const grossRetail = units * retailPrice;
+          const royaltyOwed = Math.round(grossRetail * 0.04);
+          const cogsPerUnit = 38;
+          const margin = Math.round(grossRetail - royaltyOwed - request.fee - units * cogsPerUnit);
+          const breakeven = Math.max(1, Math.ceil((request.fee) / Math.max(1, retailPrice - cogsPerUnit - retailPrice * 0.04)));
+          const projection = [
+            { m: "M1", v: 8 }, { m: "M2", v: 22 }, { m: "M3", v: 38 }, { m: "M4", v: 56 },
+            { m: "M5", v: 72 }, { m: "M6", v: 88 }, { m: "M7", v: 102 }, { m: "M8", v: 116 },
+            { m: "M9", v: 128 }, { m: "M10", v: 138 }, { m: "M11", v: 148 }, { m: "M12", v: 156 },
+          ];
+          const projectedYearRevenue = 156 * 25 * retailPrice;
+          return (
+            <>
+              <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-px ink-bg border hairline-strong anim-fadeup" style={{ animationDelay: "0.4s" }}>
+                <div className="lg:col-span-5 cream p-6">
+                  <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">10 — Sales reporting</div>
+                  <h3 className="ff-display text-[22px] mt-1 mb-4">Royalty obligation · live</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[10px] ff-mono tracking-widest uppercase muted">Units sold this period</label>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <input type="number" value={units} onChange={e => setUnits(parseInt(e.target.value || "0"))}
+                          className="flex-1 bg-transparent border-b hairline pb-1 outline-none ff-display text-[28px] leading-none" />
+                        <span className="text-[10px] ff-mono tracking-widest uppercase muted">units</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] ff-mono tracking-widest uppercase muted">Retail price per unit</label>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        <span className="ff-display text-[28px] leading-none">$</span>
+                        <input type="number" value={retailPrice} onChange={e => setRetailPrice(parseInt(e.target.value || "0"))}
+                          className="flex-1 bg-transparent border-b hairline pb-1 outline-none ff-display text-[28px] leading-none" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 paper border hairline p-4 space-y-2 text-[13px]">
+                    <div className="flex justify-between"><span className="muted">Gross retail value</span><span className="ff-mono">${grossRetail.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="muted">Royalty owed (4%)</span><span className="ff-mono ox">${royaltyOwed.toLocaleString()}</span></div>
+                    <div className="flex justify-between border-t hairline pt-2"><span className="muted">Net to Vogue</span><span className="ff-mono ff-display text-[16px]">${margin.toLocaleString()}</span></div>
+                  </div>
+                  <button className="mt-4 w-full ink-bg text-white py-3 flex items-center justify-center gap-2">
+                    <Plus size={13} />
+                    <span className="text-[11px] ff-mono tracking-[0.2em] uppercase">Submit sales report · auto-pay royalty</span>
+                  </button>
+                  <div className="mt-5 pt-4 border-t hairline">
+                    <div className="text-[10px] ff-mono tracking-widest uppercase muted mb-2">Recent reports</div>
+                    <div className="space-y-1.5 text-[11px] ff-mono">
+                      {[["Mar 2026","1,420 units","$2,386"],["Feb 2026","892 units","$1,498"],["Jan 2026","564 units","$948"]].map((r, i) => (
+                        <div key={i} className="grid grid-cols-3 gap-2">
+                          <span className="muted tracking-wider uppercase">{r[0]}</span>
+                          <span>{r[1]}</span>
+                          <span className="text-right">{r[2]} paid</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* === 11. REVENUE PROJECTION · 12 mo forecast === */}
+                <div className="lg:col-span-7 cream p-6">
+                  <div className="flex items-end justify-between mb-2">
+                    <div>
+                      <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">11 — Revenue projection</div>
+                      <h3 className="ff-display text-[22px] mt-1">Sell-through forecast · 12 mo</h3>
+                    </div>
+                    <div className="text-right">
+                      <div className="ff-display text-[32px] leading-none">${(projectedYearRevenue / 1000000).toFixed(2)}M</div>
+                      <div className="text-[10px] ff-mono tracking-widest uppercase muted mt-1">Projected gross retail</div>
+                    </div>
+                  </div>
+                  <p className="text-[12px] muted mb-4">Modelled from comparable Hermès × Calder (2024) and LVMH × Pollock (2025) capsule data.</p>
+                  <AreaChart data={projection} accent="#3D5240" height={140} showLabels />
+                  <div className="mt-6 grid grid-cols-3 gap-3">
+                    <div className="paper border hairline p-3">
+                      <div className="text-[9px] ff-mono tracking-widest uppercase muted">Break-even</div>
+                      <div className="ff-display text-[20px] mt-1">{breakeven} units</div>
+                      <div className="text-[10px] ff-mono tracking-wider uppercase muted mt-0.5">≈ M2</div>
+                    </div>
+                    <div className="paper border hairline p-3">
+                      <div className="text-[9px] ff-mono tracking-widest uppercase muted">Total royalty owed</div>
+                      <div className="ff-display text-[20px] mt-1">${(projectedYearRevenue * 0.04 / 1000).toFixed(0)}K</div>
+                      <div className="text-[10px] ff-mono tracking-wider uppercase muted mt-0.5">across 12 months</div>
+                    </div>
+                    <div className="paper border hairline p-3">
+                      <div className="text-[9px] ff-mono tracking-widest uppercase muted">Projected net margin</div>
+                      <div className="ff-display text-[20px] mt-1">56%</div>
+                      <div className="text-[10px] ff-mono tracking-wider uppercase muted mt-0.5">after royalty + COGS</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          );
+        })()}
+
+        {/* === 12. BUNDLE INTELLIGENCE · license alongside === */}
+        <div className="mt-12 anim-fadeup" style={{ animationDelay: "0.45s" }}>
+          <div className="flex items-end justify-between mb-5 flex-wrap gap-3">
             <div>
-              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">04 — Bundle intelligence</div>
+              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase muted">12 — Bundle intelligence</div>
               <h3 className="ff-display text-[28px] mt-1">License alongside · save up to 22%</h3>
               <p className="muted text-[13px] mt-2">Brands that licensed Pollock works also licensed these — historical bundle data from the platform.</p>
             </div>
@@ -2287,55 +2451,108 @@
           </div>
         </div>
 
-        <div className="mt-16 ink-bg text-white p-10 anim-fadeup" style={{ animationDelay: "0.3s" }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        {/* === 13. ROI · investor-facing summary === */}
+        {(() => {
+          const projectedYearRevenue = 156 * 25 * retailPrice;
+          return (
+            <div className="mt-12 ink-bg text-white p-10 anim-fadeup" style={{ animationDelay: "0.5s" }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div>
+                  <div className="text-[11px] ff-mono tracking-[0.2em] uppercase opacity-60">For the buyer</div>
+                  <h3 className="ff-display text-[36px] leading-tight mt-3">
+                    A license that <span className="italic" style={{ color: "#E8B47A" }}>pays for itself</span> in 60 days, then keeps paying.
+                  </h3>
+                  <p className="opacity-70 text-[14px] mt-4 leading-relaxed">
+                    Vogue's $35K license becomes the foundation for a $2.6M projected scarf line — with royalty obligations tracked, paid, and audited automatically. Both sides win, and both sides have proof.
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="border border-white/15 p-5">
+                    <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">License fee</div>
+                    <div className="ff-display text-[28px] mt-1">${request.fee.toLocaleString()}</div>
+                  </div>
+                  <div className="border border-white/15 p-5">
+                    <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">Projected revenue</div>
+                    <div className="ff-display text-[28px] mt-1" style={{ color: "#E8B47A" }}>${(projectedYearRevenue/1000000).toFixed(2)}M</div>
+                  </div>
+                  <div className="border border-white/15 p-5">
+                    <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">ROI multiple</div>
+                    <div className="ff-display text-[28px] mt-1">74×</div>
+                  </div>
+                  <div className="border border-white/15 p-5">
+                    <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">Estate share</div>
+                    <div className="ff-display text-[28px] mt-1">${Math.round(projectedYearRevenue * 0.04 / 1000)}K</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* === 9. FINAL CTAs · License management actions === */}
+        <div className="mt-16 ink-bg text-white p-10 anim-fadeup" style={{ animationDelay: "0.4s" }}>
+          <div className="flex items-end justify-between mb-6 flex-wrap gap-4">
             <div>
-              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase opacity-60">For the buyer</div>
-              <h3 className="ff-display text-[36px] leading-tight mt-3">
-                A license that <span className="italic" style={{ color: "#E8B47A" }}>pays for itself</span> in 60 days, then keeps paying.
-              </h3>
-              <p className="opacity-70 text-[14px] mt-4 leading-relaxed">
-                Vogue's $35K license becomes the foundation for a $2.6M projected scarf line — with royalty obligations tracked, paid, and audited automatically.
-                Both sides win, and both sides have proof.
-              </p>
+              <div className="text-[11px] ff-mono tracking-[0.2em] uppercase opacity-60">License management</div>
+              <h3 className="ff-display text-[28px] leading-tight mt-2">Manage, extend, or expand this license</h3>
+              <p className="opacity-65 text-[13px] mt-2 max-w-[60ch]">All requests are routed to the Estate trustees and processed through ArtChain. No new email threads, no new lawyers.</p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border border-white/15 p-5">
-                <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">License fee</div>
-                <div className="ff-display text-[28px] mt-1">${request.fee.toLocaleString()}</div>
-              </div>
-              <div className="border border-white/15 p-5">
-                <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">Projected revenue</div>
-                <div className="ff-display text-[28px] mt-1" style={{ color: "#E8B47A" }}>${(projectedYearRevenue/1000000).toFixed(2)}M</div>
-              </div>
-              <div className="border border-white/15 p-5">
-                <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">ROI multiple</div>
-                <div className="ff-display text-[28px] mt-1">74×</div>
-              </div>
-              <div className="border border-white/15 p-5">
-                <div className="text-[10px] ff-mono tracking-widest uppercase opacity-60">Estate share</div>
-                <div className="ff-display text-[28px] mt-1">${Math.round(projectedYearRevenue * 0.04 / 1000)}K</div>
-              </div>
-            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <button className="border border-white/15 p-4 text-left hover:bg-white/5 transition">
+              <FileCheck size={16} className="opacity-70 mb-2" />
+              <div className="ff-display text-[15px] leading-tight">Renew license</div>
+              <div className="text-[10px] ff-mono tracking-wider uppercase opacity-50 mt-1">12 mo · same fee</div>
+            </button>
+            <button className="border border-white/15 p-4 text-left hover:bg-white/5 transition">
+              <Globe size={16} className="opacity-70 mb-2" />
+              <div className="ff-display text-[15px] leading-tight">Extend territory</div>
+              <div className="text-[10px] ff-mono tracking-wider uppercase opacity-50 mt-1">+region · pro-rata</div>
+            </button>
+            <button className="border border-white/15 p-4 text-left hover:bg-white/5 transition">
+              <Plus size={16} className="opacity-70 mb-2" />
+              <div className="ff-display text-[15px] leading-tight">Add product category</div>
+              <div className="text-[10px] ff-mono tracking-wider uppercase opacity-50 mt-1">subject to estate</div>
+            </button>
+            <button className="border border-white/15 p-4 text-left hover:bg-white/5 transition opacity-70 cursor-not-allowed">
+              <Zap size={16} className="opacity-70 mb-2" />
+              <div className="ff-display text-[15px] leading-tight">Request AI rights</div>
+              <div className="text-[10px] ff-mono tracking-wider uppercase opacity-50 mt-1">currently reserved</div>
+            </button>
+            <button onClick={onRestart} className="border border-white/30 ox-bg p-4 text-left hover:opacity-90 transition" style={{ background: "#6B1F1F" }}>
+              <ArrowRight size={16} className="opacity-90 mb-2" />
+              <div className="ff-display text-[15px] leading-tight">Start new license</div>
+              <div className="text-[10px] ff-mono tracking-wider uppercase opacity-70 mt-1">browse catalog →</div>
+            </button>
           </div>
         </div>
 
-        <div className="mt-16 text-center anim-fadeup" style={{ animationDelay: "0.4s" }}>
-          <div className="ff-display text-[28px] italic max-w-[44ch] mx-auto leading-snug">
-            "The infrastructure that makes both the catalog and the cash register work."
+        {/* Footer note + restart */}
+        <div className="mt-12 text-center anim-fadeup" style={{ animationDelay: "0.45s" }}>
+          <div className="ff-display text-[20px] italic max-w-[58ch] mx-auto leading-snug muted">
+            "A license is not ownership. It's permission, scoped, timed, and proven."
           </div>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={onRestart} className="ink-bg text-white px-7 py-3.5 flex items-center justify-center gap-3">
-              <span className="text-[12px] tracking-[0.2em] uppercase ff-mono">Restart walkthrough</span>
-              <ArrowRight size={16} />
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            <button onClick={onRestart} className="border hairline-strong px-6 py-3 flex items-center justify-center gap-2 hover:ink-bg hover:text-white transition">
+              <ArrowLeft size={14} />
+              <span className="text-[11px] tracking-[0.2em] uppercase ff-mono">Restart walkthrough</span>
             </button>
-            <a href="https://artchain.pages.dev" target="_blank" rel="noreferrer" className="border hairline-strong px-7 py-3.5 flex items-center justify-center gap-3 hover:ink-bg hover:text-white transition">
+            <a href="https://artchain.pages.dev" target="_blank" rel="noreferrer" className="ink-bg text-white px-6 py-3 flex items-center justify-center gap-2">
               <Eye size={14} />
-              <span className="text-[12px] tracking-[0.2em] uppercase ff-mono">Continue to the ask</span>
+              <span className="text-[11px] tracking-[0.2em] uppercase ff-mono">Continue to the ask</span>
             </a>
           </div>
         </div>
       </section>
+    );
+  }
+
+  function PassportField({ label, value, mono, span }) {
+    return (
+      <div className={span === 2 ? "col-span-2" : "col-span-1"}>
+        <div className="text-[9px] ff-mono tracking-widest uppercase opacity-50">{label}</div>
+        <div className={"text-[14px] mt-1 " + (mono ? "ff-mono" : "ff-display")}>{value}</div>
+      </div>
     );
   }
 
